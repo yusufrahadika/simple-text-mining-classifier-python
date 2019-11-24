@@ -34,4 +34,4 @@ Example of directory structure.
 
 
 ## To Do
-- Rewrite rocchio to creating model
+- Dump model to pickle

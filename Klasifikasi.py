@@ -2,7 +2,7 @@ import numpy as np
 from datetime import datetime
 from Weighting import Weighting
 from Preprocessing import Preprocessing
-from collections import Counter, OrderedDict
+from collections import Counter
 
 
 class Klasifikasi:
@@ -13,6 +13,7 @@ class Klasifikasi:
         self.uniqueClass = {}
         self.unique_class_list = []
         self.naive_bayes_model = [[]]
+        self.rocchio_model = [[]]
 
     def train(self, file_names, file_classes):
         print('train started =', datetime.now())
@@ -47,6 +48,22 @@ class Klasifikasi:
             [((naive_bayes_count[feature_index, class_index] + 1) / (classes_word_count[class_index] + feature_count))
              for class_index in range(class_count)]
             for feature_index in range(feature_count)
+        ]
+
+        # train rocchio
+        normalized_tf_idf = Weighting.normalisasi(self.weightingInstance.getTfIdf())
+        rocchio_model = np.zeros((feature_count, class_count), dtype=float)
+        for document_index, (class_name, document) in enumerate(zip(file_classes, self.weightingInstance.documents)):
+            column_index = self.unique_class_list.index(class_name)
+            for row_index, feature in enumerate(self.features):
+                rocchio_model[row_index][column_index] += normalized_tf_idf[row_index][document_index]
+
+        self.rocchio_model = [
+            [
+                rocchio_model_element / self.uniqueClass[class_name]
+                for rocchio_model_element, class_name in zip(rocchio_model_row, self.unique_class_list)
+            ]
+            for rocchio_model_row in rocchio_model
         ]
 
     # 0 : Naive-bayes with Laplace smoothing
@@ -94,24 +111,7 @@ class Klasifikasi:
         print('test started =', datetime.now())
         result = []
 
-        data_train_classes = OrderedDict((file_class, None) for file_class in self.fileClasses)
-        normalized_tf_idf = Weighting.normalisasi(self.weightingInstance.getTfIdf())
-
-        for data_train_class in data_train_classes.keys():
-            document_class_indexes = [
-                document_class_index
-                for document_class_index, file_class in enumerate(self.fileClasses)
-                if file_class == data_train_class
-            ]
-
-            data_train_classes[data_train_class] = [
-                np.mean([
-                    weight
-                    for column_index, weight in enumerate(row_weighting)
-                    if column_index in document_class_indexes
-                ])
-                for feature, row_weighting in zip(self.weightingInstance.getFeatures(), normalized_tf_idf)
-            ]
+        transposed_rocchio_model = np.asarray(self.rocchio_model).transpose()
 
         for i, test_file_name in enumerate(test_file_names):
             print('file', i + 1, 'classification started =', datetime.now())
@@ -126,10 +126,10 @@ class Klasifikasi:
 
             rocchio_distance = [
                 1 - sum([query_row[0] * class_feature_mean for query_row, class_feature_mean in
-                         zip(normalized_query_tf_idf, data_train_class_item)])
-                for _, data_train_class_item in data_train_classes.items()
+                         zip(normalized_query_tf_idf, data_train_class_model)])
+                for data_train_class_model in transposed_rocchio_model
             ]
-            result.append(list(data_train_classes.keys())[rocchio_distance.index(min(rocchio_distance))])
+            result.append(self.unique_class_list[rocchio_distance.index(min(rocchio_distance))])
 
         return result
 
