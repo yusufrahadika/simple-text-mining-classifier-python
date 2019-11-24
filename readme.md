@@ -34,4 +34,4 @@ Example of directory structure.
 
 
 ## To Do
-- Rewrite naive bayes and rocchio to creating model
+- Rewrite rocchio to creating model

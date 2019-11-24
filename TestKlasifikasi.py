@@ -24,7 +24,7 @@ class TestKlasifikasi:
             file_uji_names, file_uji_actual_classes = TestKlasifikasi\
                 .get_file_names_and_classes_from_path(directory_path + '/' + data_uji_folder_name)
 
-            hasil_test_classes = klasifikasi.test(file_uji_names, method_code=0)
+            hasil_test_classes = klasifikasi.test(file_uji_names)
             print(hasil_test_classes)
             akurasi = Klasifikasi.hitungAkurasi(hasil_test_classes, file_uji_actual_classes)
 
