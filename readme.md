@@ -31,7 +31,3 @@ Example of directory structure.
 - [x] Naive-bayes with Laplace smoothing
 - [x] Rocchio
 - [ ] KNN
-
-
-## To Do
-- Dump model to pickle
