@@ -13,3 +13,6 @@
 
 # Python cache
 *.pyc
+
+# Pickled model
+*.pickle

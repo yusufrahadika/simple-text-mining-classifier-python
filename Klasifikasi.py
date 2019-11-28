@@ -1,4 +1,6 @@
 import numpy as np
+import os
+import pickle
 from datetime import datetime
 from Weighting import Weighting
 from Preprocessing import Preprocessing
@@ -15,7 +17,7 @@ class Klasifikasi:
         self.naive_bayes_model = [[]]
         self.rocchio_model = [[]]
 
-    def train(self, file_names, file_classes):
+    def train(self, file_names, file_classes, object_dump_file_name="klasifikasi.pickle"):
         print('train started =', datetime.now())
         self.weightingInstance.setText([
             Preprocessing.preprocess(open(file_name, 'r', encoding="ISO-8859-1").read())
@@ -65,6 +67,10 @@ class Klasifikasi:
             ]
             for rocchio_model_row in rocchio_model
         ]
+
+        pickle_out = open(object_dump_file_name, "wb")
+        pickle.dump(self, pickle_out)
+        pickle_out.close()
 
     # 0 : Naive-bayes with Laplace smoothing
     # 1 : Rocchio
@@ -139,3 +145,21 @@ class Klasifikasi:
             sum(1 for test_class, actual_class in zip(test_classes, actual_classes) if test_class == actual_class)
 
         return count_true / min(len(test_classes), len(actual_classes))
+
+    @staticmethod
+    def get_file_names_and_classes_from_path(path):
+        data_classes = os.listdir(path)
+
+        file_names = []
+        file_classes = []
+
+        for data_class in data_classes:
+            if not data_class.startswith('._'):
+                class_path = path + '/' + data_class
+                file_names_in_class = os.listdir(class_path)
+                for file_name_in_class in file_names_in_class:
+                    if not file_name_in_class.startswith('._'):
+                        file_names.append(class_path + '/' + file_name_in_class)
+                        file_classes.append(data_class)
+
+        return file_names, file_classes

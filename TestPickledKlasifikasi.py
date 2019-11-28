@@ -1,27 +1,26 @@
 from datetime import datetime
 import os
+import pickle
 from Klasifikasi import Klasifikasi
 
 
-class TestKlasifikasi:
+class TestPickledKlasifikasi:
     @staticmethod
     def main():
+        model_path = input("Masukkan pickled model klasifikasi: ")
+
         directory_path = input("Masukkan directory path tujuan: ")
         path_folders = os.listdir(directory_path)
 
         data_uji_folder_name = "Data uji"
-        data_latih_folder_name = "Data latih"
 
-        if data_latih_folder_name in path_folders and data_uji_folder_name in path_folders:
+        if data_uji_folder_name in path_folders and os.path.isfile(model_path):
             print('start time =', datetime.now())
-            klasifikasi = Klasifikasi()
+            pickle_in = open(model_path, "rb")
+            klasifikasi = pickle.load(pickle_in)
+            pickle_in.close()
 
-            file_latih_names, file_latih_classes = Klasifikasi\
-                .get_file_names_and_classes_from_path(directory_path + '/' + data_latih_folder_name)
-
-            klasifikasi.train(file_latih_names, file_latih_classes)
-
-            file_uji_names, file_uji_actual_classes = Klasifikasi\
+            file_uji_names, file_uji_actual_classes = Klasifikasi \
                 .get_file_names_and_classes_from_path(directory_path + '/' + data_uji_folder_name)
 
             hasil_test_classes = klasifikasi.test(file_uji_names)
@@ -30,9 +29,8 @@ class TestKlasifikasi:
 
             print('end time =', datetime.now())
             print('akurasi =', akurasi)
-
         else:
             print("Path direktori tidak tepat")
 
 
-TestKlasifikasi.main()
+TestPickledKlasifikasi.main()
